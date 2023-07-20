@@ -1,6 +1,6 @@
 FROM golang:1.20.0-alpine as builder
 
-WORKDIR /app/matrixemailbridge
+WORKDIR /app/github.com
 
 COPY ./* ./
 
@@ -18,7 +18,7 @@ FROM alpine:latest
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 WORKDIR /app
 
-COPY --from=builder /app/matrixemailbridge/main .
+COPY --from=builder /app/github.com/main .
 
 RUN mkdir /app/data/
 RUN ls -lath

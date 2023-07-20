@@ -77,7 +77,7 @@ func main() {
 	mx.DB = &dconf
 
 	mx.LoginMatrix()
-	mx.Client.Store = matrix.NewFileStore(mx.DataDir + "store.json")
+	mx.Client.Store = matrix.NewFileStore(mx.DataDir)
 	//Email configurations and sync
 	email.DB = dconf.Conn
 	email.LOG = lge
