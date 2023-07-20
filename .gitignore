@@ -1,8 +1,8 @@
 data.db
 kill.sh
 main/logs
-cfg.json
-store.json
+*.yaml
+*.db
 logs
 data
 .idea/
