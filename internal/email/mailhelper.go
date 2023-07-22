@@ -9,15 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"maunium.net/go/mautrix/id"
-
 	"github.com/eachchat/mailbot/internal/db"
 	"github.com/eachchat/mailbot/pkg/utils"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
-	"maunium.net/go/mautrix"
 )
 
 type emailContent struct {
@@ -54,7 +51,7 @@ func LoginMail(host, username, password string, ignoreSSL bool) (*client.Client,
 
 func getMails(mClient *client.Client, mBox string, messages chan *imap.Message) (*imap.BodySectionName, int) {
 
-	mbox, err := mClient.Select(mBox, false)
+	mbox, err := mClient.Select(mBox, true)
 	if err != nil {
 		LOG.Error().Msg("#12 couldnt get " + mBox + ", " + err.Error())
 		return nil, 0
@@ -186,10 +183,30 @@ func getMailContent(msg *imap.Message, section *imap.BodySectionName, roomID str
 		*body = strip.StripTags(html.UnescapeString(*body))
 	}
 */
+/*
 func SetMailbox(client *mautrix.Client, roomID id.RoomID, mailbox string) {
 	imapAcc, _ := GetRoomAccounts(roomID.String())
 	if imapAcc != nil {
 		saveMailbox(roomID.String(), mailbox)
+		errcount := 0
+		for {
+			count, err := waitForMailboxReady(string(roomID), mailbox)
+			if err != nil {
+				LOG.Error().Msg(fmt.Sprintf("Waiting for mailbox update ready failed, retry times %d, error: %s", errcount, err.Error()))
+				if errcount > 2 {
+					time.Sleep(1 * time.Second)
+					continue
+				}
+				time.Sleep(1 * time.Second)
+				errcount++
+				continue
+			}
+			if count < 1 {
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			break
+		}
 		DeleteMails(roomID.String())
 		StopMailChecker(roomID.String())
 		imapAcc.Silence = true
@@ -201,7 +218,6 @@ func SetMailbox(client *mautrix.Client, roomID id.RoomID, mailbox string) {
 	}
 }
 
-/*
 	func isHTMLenabled(roomID string) (bool, error) {
 		var r db.Rooms
 		tx := DB.Model(&db.Rooms{}).Where("room_id = ?", roomID).First(&r)

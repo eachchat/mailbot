@@ -3,14 +3,16 @@ package email
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/eachchat/mailbot/internal/db"
 	"github.com/eachchat/mailbot/pkg/utils"
 	"gorm.io/gorm"
+	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/id"
 )
 
-func SetupImap(roomID id.RoomID, msg []string, sender id.UserID, mailCheckInterval int, isEnableHTML bool) error {
+func SetupImap(roomID id.RoomID, msg []string, sender id.UserID, mailCheckInterval int, isEnableHTML bool, mxClient *mautrix.Client) error {
 	var ign int
 	if len(msg) < 5 {
 		return fmt.Errorf("wrong command: !setup imap,imap.example.com:993,user@exapmole.com,PASSWORD,INBOX,ture/false")
@@ -26,6 +28,29 @@ func SetupImap(roomID id.RoomID, msg []string, sender id.UserID, mailCheckInterv
 		insertNewRoom(roomID.String(), isEnableHTML)
 	}
 	insertImapAccount(roomID.String(), msg[0], msg[1], utils.B64Encode(msg[2]), msg[3], mailCheckInterval, ign, sender.String())
+
+	errcount := 0
+	for {
+		count, err := waitForMailboxReady(string(roomID), msg[3])
+		if err != nil {
+			LOG.Error().Msg(fmt.Sprintf("Waiting for  imap  account ready  retry time %d, error: %s", errcount, err.Error()))
+			if errcount > 2 {
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			time.Sleep(1 * time.Second)
+			errcount++
+			continue
+		}
+		if count < 1 {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		break
+	}
+	imapAcc, _ := GetRoomAccounts(roomID.String())
+	imapAcc.Silence = true
+	go StartMailListener(*imapAcc, mxClient)
 	return nil
 }
 
@@ -83,6 +108,14 @@ func insertNewRoom(roomID string, isEnableHTML bool) error {
 	return tx.Error
 }
 
+func waitForMailboxReady(roomID, mbox string) (int64, error) {
+	var count int64
+	tx := DB.Model(&db.ImapAccounts{}).Where("room_id = ? and mailbox = ?", roomID, mbox).Count(&count)
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+	return count, nil
+}
 func hasRoom(roomID string) (bool, error) {
 	var count int64
 	tx := DB.Model(&db.Rooms{}).Where("room_id = ?", roomID).Count(&count)

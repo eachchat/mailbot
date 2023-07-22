@@ -58,23 +58,24 @@ func DeleteMails(roomID string) {
 	DB.Model(&db.Mails{}).Where("room_id = ?", roomID).Delete(&db.Mails{})
 }
 
-func SyncMail(roomID id.RoomID, imapA db.ImapAccounts, mxclient *mautrix.Client) {
-	var ignoreSSlCert bool
-	if imapA.IgnoreSSL == 1 {
-		ignoreSSlCert = true
-	} else {
-		ignoreSSlCert = false
+/*
+	func SyncMail(roomID id.RoomID, imapA db.ImapAccounts, mxclient *mautrix.Client) {
+		var ignoreSSlCert bool
+		if imapA.IgnoreSSL == 1 {
+			ignoreSSlCert = true
+		} else {
+			ignoreSSlCert = false
+		}
+		mclient, err := LoginMail(imapA.Host, imapA.UserName, imapA.Password, ignoreSSlCert)
+		if mclient == nil || err != nil {
+			mxclient.SendText(roomID, "Can not create email bridge! Error: "+err.Error())
+			return
+		}
+		//mxclient.SendText(roomID, "您已成功登录了邮箱 "+username+"，您可以在亿洽内同步接收新邮件")
+		mxclient.SendText(roomID, "You have already login IMAP with "+imapA.UserName)
+		StartMailListener(imapA, mxclient)
 	}
-	mclient, err := LoginMail(imapA.Host, imapA.UserName, imapA.Password, ignoreSSlCert)
-	if mclient == nil || err != nil {
-		mxclient.SendText(roomID, "Can not create email bridge! Error: "+err.Error())
-		return
-	}
-	//mxclient.SendText(roomID, "您已成功登录了邮箱 "+username+"，您可以在亿洽内同步接收新邮件")
-	mxclient.SendText(roomID, "You have already login IMAP with "+imapA.UserName)
-	StartMailListener(imapA, mxclient)
-}
-
+*/
 func StartMailListener(account db.ImapAccounts, mxClient *mautrix.Client) {
 
 	var ign bool
@@ -137,6 +138,13 @@ func StopMailChecker(roomID string) {
 	if ok {
 		close(listenerMap[roomID])
 		delete(listenerMap, roomID)
+	}
+	for {
+		if err := recover(); err != nil {
+			break
+		} else {
+			time.Sleep(1 * time.Second)
+		}
 	}
 }
 
@@ -276,6 +284,7 @@ func StartMailSchedeuler(mxClient *mautrix.Client) {
 	checksPerAccount = make(map[string]int)
 	LOG.Info().Msg("Starting to listen email....")
 	accounts, err := getimapAccounts()
+
 	if err != nil {
 		log.Panic(err)
 	}
@@ -307,4 +316,11 @@ func uploadMedia(mclient *mautrix.Client, body []byte, format string) (*mautrix.
 		return nil, err
 	}
 	return mediaResp, err
+}
+
+func Close() {
+	for k, _ := range listenerMap {
+		close(listenerMap[k])
+		delete(listenerMap, k)
+	}
 }

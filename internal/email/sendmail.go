@@ -12,8 +12,10 @@ import (
 func SendMailMsg(msg string, roomID string, account *db.SmtpAccounts) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", account.UserName)
-	msg = strings.Replace(msg, "!send", "", 1)
 	msgSlice := strings.Split(strings.TrimSpace(msg), "\n")
+	if len(msgSlice) < 1 {
+		return fmt.Errorf("!send user@example.com,....\r\nCC user@example.com\r\nBCC user@example.com\r\nSubject  title\r\nthe mail contents\n mail contents")
+	}
 	to := msgSlice[0]
 	if !checkMailAddress(to) {
 		return fmt.Errorf("wrong email address: %v", to)

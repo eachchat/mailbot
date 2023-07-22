@@ -6,3 +6,5 @@ main/logs
 logs
 data
 .idea/
+.vscode/launch.json
+cmd/mailbot.db.bak

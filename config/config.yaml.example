@@ -1,7 +1,6 @@
 allowed_servers:
     - "example.com"
     - "matrix.org"
-defaultmailcheckinterval: 30
 htmldefault: false
 markdownenabledbydefault: true
 ## one of matrixaccesstoken and matrixuserpassword must be define.
@@ -10,11 +9,10 @@ markdownenabledbydefault: true
 matrixuserpassword: "YOUR PASSWORD"
 matrixserver": "https://YOURHOMESERVER"
 matrixuserid: "@userx:YOURHOMESERVER"
-
+defaultmailcheckinterval: 30
 log:
   # log level: INFO, WARN, DEBUG, ERROR
   level: INFO
-
 db:
   type: postgresql
 	username: USERNAME

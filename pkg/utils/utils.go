@@ -13,7 +13,7 @@ import (
 )
 
 // MakeDir make directory path is not exist.
-func MakeDir(dirPath string) error {
+func MakeDir(dirPath string) (string, error) {
 	if !strings.HasPrefix(dirPath, "/") && !strings.HasPrefix(dirPath, "./") {
 		dirPath = "./" + dirPath
 	}
@@ -24,14 +24,14 @@ func MakeDir(dirPath string) error {
 	if err != nil {
 		err = os.Mkdir(dirPath, 0750)
 		if err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		if !s.IsDir() {
-			return nil
+			return dirPath, nil
 		}
 	}
-	return nil
+	return dirPath, nil
 }
 
 // B64Decode  decode base64 string
@@ -100,19 +100,17 @@ func encodeJPEG(img image.Image) ([]byte, error) {
 	return data, nil
 }
 
-/*
-func main() {
-	// 示例用法
-	octetStreamData := []byte("application/octet-stream data")
-	jpegData, err := ConvertOctetStreamToJPEG(octetStreamData)
-	if err != nil {
-		// 处理错误
-		return
+// MakeDir make directory path is not exist.
+func CheckeDir(dirPath string) string {
+	if !strings.HasPrefix(dirPath, "/") && !strings.HasPrefix(dirPath, "./") {
+		dirPath = "./" + dirPath
+	}
+	if !strings.HasSuffix(dirPath, "/") {
+		dirPath = dirPath + "/"
 	}
 
-	// 使用jpegData进行后续操作，比如保存为文件等
+	return dirPath
 }
-*/
 
 // DetectImageType 识别图片类型
 func DetectImageType(data []byte) (string, error) {

@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
+	"os/signal"
+	"syscall"
 
 	"github.com/eachchat/mailbot/internal/db"
 	"github.com/eachchat/mailbot/internal/email"
@@ -14,17 +15,10 @@ import (
 
 var tempDir = "temp/"
 
-/*
-	func viewViewHelp(roomID string, client *mautrix.Client) {
-		client.SendText(id.RoomID(roomID), "Available options:\n\nmb/mailbox\t-\tViews the current used mailbox\nmbs/mailboxes\t-\tView the available mailboxes\nbl/blocklist\t-\tViews the list of blocked addresses")
-	}
-
-	func deleteTempFile(name string) {
-		os.Remove(tempDir + name)
-	}
-*/
 func main() {
-
+	done := make(chan struct{})
+	q := make(chan os.Signal, 1)
+	signal.Notify(q, os.Interrupt, syscall.SIGABRT, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	var conf config.Configuration
 	var dconf db.DBCONF
 	var mx matrix.MxConf
@@ -37,17 +31,13 @@ func main() {
 	if len(confPrefix) <= 0 {
 		confPrefix = "./"
 	}
-	err := utils.MakeDir(dirPrefix)
-	if err != nil {
-		panic(fmt.Sprintf("%s: No such file or director.", dirPrefix))
-	}
-	err = utils.MakeDir(confPrefix)
-	if err != nil {
-		panic(fmt.Sprintf("%s: No such file or director.", confPrefix))
-	}
+	dirPrefix = utils.CheckeDir(dirPrefix)
+
+	confPrefix = utils.CheckeDir(confPrefix)
+
 	fmt.Println("starting to login matrix.")
 	tempDir = dirPrefix + tempDir
-	err = conf.InitConf(confPrefix + "config/config.yaml")
+	err := conf.InitConf(confPrefix + "config.yaml")
 	if err != nil {
 		panic(err)
 	}
@@ -73,6 +63,7 @@ func main() {
 	mx.MatrixUserID = conf.MatrixUserID
 	mx.MatrixUserPassword = conf.MatrixUserPassword
 	mx.Matrixaccesstoken = conf.Matrixaccesstoken
+	mx.DefaultMailCheckInterval = conf.DefaultMailCheckInterval
 	mx.DataDir = dirPrefix
 	mx.DB = &dconf
 
@@ -84,7 +75,14 @@ func main() {
 	econf.MxClient = mx.Client
 	email.StartMailSchedeuler(mx.Client)
 
-	for {
-		time.Sleep(1 * time.Second)
-	}
+	go func() {
+		<-q
+		clear(done)
+	}()
+	<-done
+}
+
+func clear(done chan struct{}) {
+	defer close(done)
+	email.Close()
 }

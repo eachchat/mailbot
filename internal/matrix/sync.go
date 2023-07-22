@@ -66,6 +66,7 @@ func (mx *MxConf) syncMessageEvnt(source mautrix.EventSource, evt *event.Event) 
 	}
 	switch true {
 	case strings.HasPrefix(message, "!send"):
+		message = strings.Replace(message, "!send", "", 1)
 		account, err := email.GetSMTPAccount(roomID.String())
 		if err == gorm.ErrRecordNotFound {
 			mx.Client.SendText(roomID, "You have to set up a SMTP account, use !setup for more information")
@@ -92,23 +93,26 @@ func (mx *MxConf) syncMessageEvnt(source mautrix.EventSource, evt *event.Event) 
 				mx.Client.SendNotice(evt.RoomID, "SMTP has been set up successfully!")
 			}
 		case "imap":
-			err := email.SetupImap(roomID, msgSlice[1:], evt.Sender, mx.DefaultMailCheckInterval, mx.HtmlDefault)
+			err := email.SetupImap(roomID, msgSlice[1:], evt.Sender, mx.DefaultMailCheckInterval, mx.HtmlDefault, mx.Client)
 			if err != nil {
 				mx.Client.SendNotice(evt.RoomID, err.Error())
 			} else {
+
 				mx.Client.SendNotice(evt.RoomID, "IMAP has been set up successfully!")
 			}
 		default:
 			mx.Client.SendNotice(roomID, "!setup imap/smtp, host:port, username(em@ail.com),password,<mailbox (only for imap)>,ignoreSSLcert(true/false)")
 		}
-	case strings.HasPrefix(message, "!setmailbox"):
-		message = strings.TrimSpace(strings.Replace(message, "!setmailbox", "", 1))
-		if message == "" {
-			mx.Client.SendText(roomID, "Usage: !setmailbox <new mailbox>")
-		}
-		email.SetMailbox(mx.Client, roomID, message)
-		//email.ViewMailboxes(roomID.String(), client)
-		return
+		/*
+			case strings.HasPrefix(message, "!setmailbox"):
+				message = strings.TrimSpace(strings.Replace(message, "!setmailbox", "", 1))
+				if message == "" {
+					mx.Client.SendText(roomID, "Usage: !setmailbox <new mailbox>")
+				}
+				email.SetMailbox(mx.Client, roomID, message)
+				//email.ViewMailboxes(roomID.String(), client)
+				return
+		*/
 	case strings.HasPrefix(message, "!mailboxes"):
 		mx.ViewMailboxes(roomID.String(), mx.Client)
 	case strings.HasPrefix(message, "!logout") || strings.HasPrefix(message, "!leave"):
@@ -145,5 +149,4 @@ func (mx *MxConf) startMatrixSync() {
 	if err != nil {
 		LOG.Error().Msg(fmt.Sprintf("Syncing error: %s", err.Error()))
 	}
-
 }

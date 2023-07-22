@@ -72,7 +72,7 @@ func (mx *MxConf) ReturnHelp(roomID id.RoomID) {
 	//helpText += "!ping - gets information about the email bridge for this room\r\n"
 	helpText += "!help - shows this command help overview\r\n"
 	helpText += "!mailboxes - shows a list with all mailboxes available on your IMAP server\r\n"
-	helpText += "!setmailbox (mailbox) - changes the mailbox for the room\r\n"
+	//helpText += "!setmailbox (mailbox) - changes the mailbox for the room\r\n"
 	helpText += "!mailbox - shows the currently selected mailbox\r\n"
 	//helpText += "!sethtml (on/off or true/false) - sets HTML-rendering for messages on/off\r\n"
 	helpText += "!logout remove email bridge from current room\r\n"
@@ -94,4 +94,3 @@ func getHostFromMatrixID(matrixID string) (host string) {
 	}
 	return ""
 }
-
