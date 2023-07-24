@@ -22,8 +22,7 @@ func (l *LogConf) New() *zerolog.Logger {
 	case "ERROR":
 		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	}
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout}
-	multi := zerolog.MultiLevelWriter(consoleWriter, os.Stdout, os.Stderr)
+	multi := zerolog.MultiLevelWriter(os.Stdout)
 	logg := zerolog.New(multi).With().Timestamp().Logger()
 
 	return &logg

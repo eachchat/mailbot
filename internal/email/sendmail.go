@@ -6,16 +6,15 @@ import (
 	"strings"
 
 	"github.com/eachchat/mailbot/internal/db"
+	"github.com/eachchat/mailbot/pkg/utils"
 	"gopkg.in/gomail.v2"
 )
 
 func SendMailMsg(msg string, roomID string, account *db.SmtpAccounts) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", account.UserName)
+	msg = strings.Replace(msg, "!send", "", 1)
 	msgSlice := strings.Split(strings.TrimSpace(msg), "\n")
-	if len(msgSlice) < 1 {
-		return fmt.Errorf("!send user@example.com,....\r\nCC user@example.com\r\nBCC user@example.com\r\nSubject  title\r\nthe mail contents\n mail contents")
-	}
 	to := msgSlice[0]
 	if !checkMailAddress(to) {
 		return fmt.Errorf("wrong email address: %v", to)
@@ -43,7 +42,7 @@ func SendMailMsg(msg string, roomID string, account *db.SmtpAccounts) error {
 		}
 	}
 	LOG.Debug().Msg(fmt.Sprintf("Host: %v, Port: %v, User: %v", account.Host, account.Port, account.UserName))
-	gd := gomail.NewDialer(account.Host, account.Port, account.UserName, account.Password)
+	gd := gomail.NewDialer(account.Host, account.Port, account.UserName, utils.B64Decode(account.Password))
 	if account.IgnoreSSL == 1 {
 		gd.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}

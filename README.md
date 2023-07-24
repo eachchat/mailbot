@@ -1,5 +1,5 @@
-# Mailbot
-Mailbot is a fork from  Matrix-bridge, Mailbot to allow you receiving and sending emails in Matrix. You can have multiple email accounts and write emails to one or multiple recipients.
+# Matrix-EmailBridge
+A Matrix-bridge to allow you receiving and sending emails in Matrix. You can have multiple email accounts and write emails to one or multiple recipients.
 
 ## Installation
 ### Compile method

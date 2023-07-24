@@ -51,7 +51,7 @@ func LoginMail(host, username, password string, ignoreSSL bool) (*client.Client,
 
 func getMails(mClient *client.Client, mBox string, messages chan *imap.Message) (*imap.BodySectionName, int) {
 
-	mbox, err := mClient.Select(mBox, true)
+	mbox, err := mClient.Select(mBox, false)
 	if err != nil {
 		LOG.Error().Msg("#12 couldnt get " + mBox + ", " + err.Error())
 		return nil, 0
@@ -182,41 +182,21 @@ func getMailContent(msg *imap.Message, section *imap.BodySectionName, roomID str
 		*body = strings.ReplaceAll(*body, "<br>", "\r\n")
 		*body = strip.StripTags(html.UnescapeString(*body))
 	}
-*/
-/*
-func SetMailbox(client *mautrix.Client, roomID id.RoomID, mailbox string) {
-	imapAcc, _ := GetRoomAccounts(roomID.String())
-	if imapAcc != nil {
-		saveMailbox(roomID.String(), mailbox)
-		errcount := 0
-		for {
-			count, err := waitForMailboxReady(string(roomID), mailbox)
-			if err != nil {
-				LOG.Error().Msg(fmt.Sprintf("Waiting for mailbox update ready failed, retry times %d, error: %s", errcount, err.Error()))
-				if errcount > 2 {
-					time.Sleep(1 * time.Second)
-					continue
-				}
-				time.Sleep(1 * time.Second)
-				errcount++
-				continue
-			}
-			if count < 1 {
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			break
-		}
-		DeleteMails(roomID.String())
-		StopMailChecker(roomID.String())
-		imapAcc.Silence = true
-		go StartMailListener(*imapAcc, client)
-		client.SendText(roomID, "Mailbox updated")
 
-	} else {
-		client.SendText(roomID, "You have to setup an IMAP account to use this command. Use !setup or !login for more informations")
+	func SetMailbox(client *mautrix.Client, roomID id.RoomID, mailbox string) {
+		imapAcc, _ := GetRoomAccounts(roomID.String())
+		if imapAcc != nil {
+			saveMailbox(roomID.String(), mailbox)
+			DeleteMails(roomID.String())
+			StopMailChecker(roomID.String())
+			imapAcc.Silence = true
+			go StartMailListener(*imapAcc, client)
+			client.SendText(roomID, "Mailbox updated")
+
+		} else {
+			client.SendText(roomID, "You have to setup an IMAP account to use this command. Use !setup or !login for more informations")
+		}
 	}
-}
 
 	func isHTMLenabled(roomID string) (bool, error) {
 		var r db.Rooms

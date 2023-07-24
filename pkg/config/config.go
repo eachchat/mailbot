@@ -22,7 +22,7 @@ type MatrixConf struct {
 	Matrixaccesstoken        string   `yaml:"matrixaccesstoken"`
 	MatrixUserID             string   `yaml:"matrixuserid"`
 	AllowedServers           []string `yaml:"allowed_servers"`
-	DefaultMailCheckInterval int      `yaml:"defaultmailCheckInterval"`
+	DefaultMailCheckInterval int      `yaml:"defaultmailcheckinterval"`
 	MarkdownEnabledByDefault bool     `yaml:"markdownEnabledByDefault"`
 	HtmlDefault              bool     `yaml:"htmlDefault"`
 }

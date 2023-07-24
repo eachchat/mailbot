@@ -28,7 +28,6 @@ func SetupImap(roomID id.RoomID, msg []string, sender id.UserID, mailCheckInterv
 		insertNewRoom(roomID.String(), isEnableHTML)
 	}
 	insertImapAccount(roomID.String(), msg[0], msg[1], utils.B64Encode(msg[2]), msg[3], mailCheckInterval, ign, sender.String())
-
 	errcount := 0
 	for {
 		count, err := waitForMailboxReady(string(roomID), msg[3])
@@ -89,12 +88,13 @@ func GetIMAPAccount(roomID string) (*db.ImapAccounts, error) {
 	return &imp, nil
 }
 
+/*
 func saveMailbox(roomID, newMailbox string) error {
 	tx := DB.Model(&db.ImapAccounts{}).Where("room_id = ?", roomID).Update("mailbox", newMailbox)
 	return tx.Error
 }
 
-/*
+
 func getMailbox(roomID string) (string, error) {
 	var imapA db.ImapAccounts
 	tx := DB.Where(&db.ImapAccounts{RoomID: roomID}).First(&imapA)
@@ -108,14 +108,6 @@ func insertNewRoom(roomID string, isEnableHTML bool) error {
 	return tx.Error
 }
 
-func waitForMailboxReady(roomID, mbox string) (int64, error) {
-	var count int64
-	tx := DB.Model(&db.ImapAccounts{}).Where("room_id = ? and mailbox = ?", roomID, mbox).Count(&count)
-	if tx.Error != nil {
-		return 0, tx.Error
-	}
-	return count, nil
-}
 func hasRoom(roomID string) (bool, error) {
 	var count int64
 	tx := DB.Model(&db.Rooms{}).Where("room_id = ?", roomID).Count(&count)
@@ -123,4 +115,13 @@ func hasRoom(roomID string) (bool, error) {
 		return false, tx.Error
 	}
 	return (count >= 1), nil
+}
+
+func waitForMailboxReady(roomID, mbox string) (int64, error) {
+	var count int64
+	tx := DB.Model(&db.ImapAccounts{}).Where("room_id = ? and mailbox = ?", roomID, mbox).Count(&count)
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+	return count, nil
 }

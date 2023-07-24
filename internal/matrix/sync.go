@@ -66,7 +66,6 @@ func (mx *MxConf) syncMessageEvnt(source mautrix.EventSource, evt *event.Event) 
 	}
 	switch true {
 	case strings.HasPrefix(message, "!send"):
-		message = strings.Replace(message, "!send", "", 1)
 		account, err := email.GetSMTPAccount(roomID.String())
 		if err == gorm.ErrRecordNotFound {
 			mx.Client.SendText(roomID, "You have to set up a SMTP account, use !setup for more information")
@@ -97,7 +96,6 @@ func (mx *MxConf) syncMessageEvnt(source mautrix.EventSource, evt *event.Event) 
 			if err != nil {
 				mx.Client.SendNotice(evt.RoomID, err.Error())
 			} else {
-
 				mx.Client.SendNotice(evt.RoomID, "IMAP has been set up successfully!")
 			}
 		default:
@@ -149,4 +147,5 @@ func (mx *MxConf) startMatrixSync() {
 	if err != nil {
 		LOG.Error().Msg(fmt.Sprintf("Syncing error: %s", err.Error()))
 	}
+
 }
